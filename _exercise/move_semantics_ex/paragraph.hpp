@@ -20,17 +20,20 @@ namespace LegacyCode
     public:
         Paragraph() : buffer_(new char[1024])
         {
+            std::cout << "Paragraph()\n";
             std::strcpy(buffer_, "Default text!");
+        }
+
+        Paragraph(const char* txt) : buffer_(new char[1024])
+        {
+            std::cout << "Paragraph(" << txt << ")\n";
+            std::strcpy(buffer_, txt);
         }
 
         Paragraph(const Paragraph& p) : buffer_(new char[1024])
         {
             std::strcpy(buffer_, p.buffer_);
-        }
-
-        Paragraph(const char* txt) : buffer_(new char[1024])
-        {
-            std::strcpy(buffer_, txt);
+            std::cout << "Paragraph(cc: " << buffer_ << ")\n";
         }
 
         Paragraph& operator=(const Paragraph& p)
@@ -38,6 +41,23 @@ namespace LegacyCode
             Paragraph temp(p);
             swap(temp);
 
+            return *this;
+        }
+        
+        Paragraph(Paragraph&& source) : buffer_{source.buffer_}
+        {
+            source.buffer_ = nullptr;
+            std::cout << "Paragraph(mv: " << buffer_ << ")\n";
+        }
+        
+        Paragraph& operator=(Paragraph&& source)
+        {
+            if (this != &source)
+            {
+                this->buffer_ = source.buffer_;
+                source.buffer_ = nullptr;
+            }
+            
             return *this;
         }
 
@@ -56,8 +76,9 @@ namespace LegacyCode
             std::cout << "Rendering text '" << buffer_ << "' at: [" << posx << ", " << posy << "]" << std::endl;
         }
 
-        virtual ~Paragraph()
+        ~Paragraph()
         {
+            std::cout << "~Paragraph(" << (buffer_ ? buffer_ : "after move") << ")\n";
             delete[] buffer_;
         }
     };
