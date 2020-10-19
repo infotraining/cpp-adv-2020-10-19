@@ -120,6 +120,29 @@ TEST_CASE("default move semantics - rule of five")
     }
 }
 
+struct AllByDefault
+{   
+    int number;
+    std::string text;
+    std::vector<int> data;
+};
+
+TEST_CASE("all by default")
+{
+    AllByDefault a;
+
+    a.number = 1;
+    a.text = "text";
+    a.data = {2, 3, 4};
+
+    AllByDefault b = a;
+    REQUIRE((b.number == 1 && b.text == "text"s && b.data == std::vector<int>{2, 3, 4}));   
+
+    AllByDefault c = std::move(a);
+    REQUIRE((c.number == 1 && c.text == "text"s && c.data == std::vector<int>{2, 3, 4})); 
+    REQUIRE((a.text == ""s && a.data.size() == 0));
+}
+
 template <typename T>
 class UniquePtr
 {
@@ -177,9 +200,22 @@ public:
     }
 };
 
+template <typename T>
+UniquePtr<T> make_unique_ptr()
+{
+    return UniquePtr<T>(new T());
+}
+
+template <typename T, typename Arg1, typename Arg2>
+UniquePtr<T> make_unique_ptr(Arg1&& arg1, Arg2&& arg2)
+{
+    return UniquePtr<T>(new T(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2)));
+}
+
 TEST_CASE("custom move semantics")
 {
-    UniquePtr<Gadget> ptr_g1(new Gadget{32, "tablet"});
+    //UniquePtr<Gadget> ptr_g1(new Gadget{32, "tablet"});
+    UniquePtr<Gadget> ptr_g1 = make_unique_ptr<Gadget>();
 
     ptr_g1->use();
 
@@ -191,25 +227,27 @@ TEST_CASE("custom move semantics")
     ptr_g3->use();
 } // tablet is destroyed
 
-struct AllByDefault
-{   
-    int number;
-    std::string text;
-    std::vector<int> data;
-};
 
-TEST_CASE("all by default")
+void foo(int a)
 {
-    AllByDefault a;
+    std::cout << "foo(" << a << ")\n";
+}
 
-    a.number = 1;
-    a.text = "text";
-    a.data = {2, 3, 4};
+void bar(int a)
+{
+    std::cout << "bar(" << a << ")\n";
+}
 
-    AllByDefault b = a;
-    REQUIRE((b.number == 1 && b.text == "text"s && b.data == std::vector<int>{2, 3, 4}));   
+template <typename F, typename Arg1> void call(F&& func, Arg1&& arg1)
+{
+    std::cout << "LOG\n";
+    func(std::forward<Arg1>(arg1));
+}
 
-    AllByDefault c = std::move(a);
-    REQUIRE((c.number == 1 && c.text == "text"s && c.data == std::vector<int>{2, 3, 4})); 
-    REQUIRE((a.text == ""s && a.data.size() == 0));
+TEST_CASE()
+{
+    call(&foo, 10);
+    call(&bar, 42);
+
+    call([](const std::string& txt) { std::cout << "Lambda(" << txt << ")\n"; }, "Hello");
 }

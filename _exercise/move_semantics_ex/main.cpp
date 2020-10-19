@@ -82,11 +82,18 @@ public:
     // {
     // }
 
-    Header(LegacyCode::Paragraph p, std::string h)
-        : p_ {std::move(p)}
-        , header_ {std::move(h)}
-    {
-    }
+    // // good compromise
+    // Header(LegacyCode::Paragraph p, std::string h)
+    //     : p_ {std::move(p)}
+    //     , header_ {std::move(h)}
+    // {
+    // }
+
+    // the best solution
+    template <typename P, typename H>
+    Header(P&& p, H&& h0)
+        : p_{std::forward<P>(p)}, header_{std::forward<H>(h)}
+    {}
 };
 
 TEST_CASE("Paragraph")
@@ -100,7 +107,7 @@ TEST_CASE("Paragraph")
 
     std::cout << "\n\n";
 
-    Header h1(create_paragraph(), "<h1>"s); // init with rvalue
+    Header h1(create_paragraph(), "<h1>"); // init with rvalue
     Header h2 {p, header_str}; // init with lvalue (copy)
     REQUIRE(header_str == "<h2>");
     Header h3 {create_paragraph(), std::move(header_str)};
