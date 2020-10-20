@@ -10,11 +10,11 @@ class Gadget
 {
 public:
     Gadget(int value = 0)
-        : value_{value}
+        : value_ {value}
     {
         std::cout << "Ctor Gadget(" << value_ << ")\n";
     }
-    
+
     ~Gadget()
     {
         std::cout << "~Gadget(" << value_ << ")\n";
@@ -50,6 +50,12 @@ namespace LegacyCode
 
         return xarray;
     }
+
+    void free_gadget(Gadget* ptr)
+    {
+        //..
+        delete ptr;
+    }
 }
 
 void reset_value(Gadget& g, int n)
@@ -60,70 +66,63 @@ void reset_value(Gadget& g, int n)
     cout << "New value for Gadget: " << g.value() << endl;
 }
 
-Gadget* create_gadget(int arg)
+std::unique_ptr<Gadget> create_gadget(int arg) 
 {
-    return new Gadget(arg);
+    return std::unique_ptr<Gadget>(new Gadget(arg));
 }
 
-void unsafe1() // TODO: poprawa z wykorzystaniem smart_ptr
+void safe1() 
 {
-    Gadget* ptr_gdgt = create_gadget(4);
+    std::unique_ptr<Gadget> ptr_gdgt = create_gadget(4);
 
     /* kod korzystajacy z ptrX */
 
     reset_value(*ptr_gdgt, 5);
 
     ptr_gdgt->unsafe();
-
-    delete ptr_gdgt;
 }
 
-void unsafe2()
+void safe2() // TODO: poprawa z wykorzystaniem smart_ptr
 {
     int size = 10;
 
-    Gadget* buffer = LegacyCode::create_many_gadgets(size);
+    std::unique_ptr<Gadget[]> buffer(LegacyCode::create_many_gadgets(size));
 
     /* kod korzystający z buffer */
 
     for (int i = 0; i < size; ++i)
-        buffer[0].unsafe();
-
-    delete[] buffer;
+        buffer[i].unsafe();
 }
 
-void unsafe3()
+void safe3() 
 {
-    vector<Gadget*> my_gadgets;
+    std::vector<std::unique_ptr<Gadget>> my_gadgets;
 
     my_gadgets.push_back(create_gadget(87));
     my_gadgets.push_back(create_gadget(12));
-    my_gadgets.push_back(new Gadget(98));
+    my_gadgets.push_back(std::make_unique<Gadget>(98));
 
     int value_generator = 0;
-    for (vector<Gadget*>::iterator it = my_gadgets.begin(); it != my_gadgets.end(); ++it)
+    for (auto& ptr_g : my_gadgets)
     {
-        cout << "Gadget's old value: " << (*it)->value() << endl;
-        reset_value(**it, ++value_generator);
+        cout << "Gadget's old value: " << ptr_g->value() << endl;
+        reset_value(*ptr_g, ++value_generator);
     }
 
-    delete my_gadgets[0];
-    my_gadgets[0] = 0;
+    //LegacyCode::free_gadget(my_gadgets[0].release());    
+    my_gadgets[0].reset();
 
     my_gadgets[1]->unsafe();
-
-    // cleanup
-    for (vector<Gadget*>::iterator it = my_gadgets.begin(); it != my_gadgets.end(); ++it)
-        delete *it;
 }
 
-int main() try
+int main()
+try
 {
     try
     {
-        unsafe1();
-        unsafe2();
-        unsafe3();
+        safe1();
+        safe2();
+        safe3();
     }
     catch (const exception& e)
     {

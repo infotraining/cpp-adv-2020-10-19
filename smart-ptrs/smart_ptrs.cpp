@@ -182,5 +182,5 @@ TEST_CASE("std::unique_ptr<T[]>")
 
     std::unique_ptr<int[]> uptr(tab);
 
-    uptr[54] = 
+    uptr[54] = 43;
 }
