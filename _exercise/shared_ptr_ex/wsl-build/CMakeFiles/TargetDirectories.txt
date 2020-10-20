@@ -1,4 +1,0 @@
-/mnt/d/infotraining/code/cpp-11/code/_exercises/shared_ptr_ex/wsl-build/CMakeFiles/edit_cache.dir
-/mnt/d/infotraining/code/cpp-11/code/_exercises/shared_ptr_ex/wsl-build/CMakeFiles/rebuild_cache.dir
-/mnt/d/infotraining/code/cpp-11/code/_exercises/shared_ptr_ex/wsl-build/CMakeFiles/shared_ptr_ex.dir
-/mnt/d/infotraining/code/cpp-11/code/_exercises/shared_ptr_ex/wsl-build/CMakeFiles/test.dir

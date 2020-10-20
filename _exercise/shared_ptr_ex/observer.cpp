@@ -4,6 +4,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <memory>
 
 class Observer
 {
@@ -14,8 +15,9 @@ public:
 
 class Subject
 {
+    using weak_ptr_cmp = std::owner_less<std::weak_ptr<Observer>>;
     int state_;
-    std::set<Observer*> observers_;
+    std::set<std::weak_ptr<Observer>, weak_ptr_cmp> observers_;
 
 public:
     Subject()
@@ -23,12 +25,12 @@ public:
     {
     }
 
-    void register_observer(Observer* observer)
+    void register_observer(std::weak_ptr<Observer> observer)
     {
         observers_.insert(observer);
     }
 
-    void unregister_observer(Observer* observer)
+    void unregister_observer(std::weak_ptr<Observer> observer)
     {
         observers_.erase(observer);
     }
@@ -45,9 +47,18 @@ public:
 protected:
     void notify(const std::string& event_args)
     {
-        for (std::set<Observer*>::iterator it = observers_.begin(); it != observers_.end(); ++it)
+        for (auto it = observers_.begin(); it != observers_.end();)
         {
-            (*it)->update(event_args);
+            auto living_observer = it->lock();
+            if (living_observer)
+            {
+                living_observer->update(event_args);
+                ++it;
+            }
+            else
+            {
+                it = observers_.erase(it);
+            }
         }
     }
 };
@@ -66,8 +77,8 @@ class Logger : public Observer
     std::string path_;
 
 public:
-    Logger(const std::string& p)
-        : path_{p}
+    Logger(std::string p)
+        : path_{std::move(p)}
     {
     }
 
@@ -89,18 +100,16 @@ int main(int argc, char const* argv[])
     Subject s;
 
     {
-        Customer* o1 = new Customer();
+        auto o1 = std::make_shared<Customer>();
         s.register_observer(o1);
 
         {
-            Logger* logger = new Logger("log-20200707-12:22:33.dat");
+            auto logger = std::make_shared<Logger>("log-20200707-12:22:33.dat");
             s.register_observer(logger);
 
             s.set_state(1);
             s.set_state(2);
             s.set_state(3);
-
-            delete logger;
         }
         cout << "++++ End of scope ++++\n\n"
              << endl;

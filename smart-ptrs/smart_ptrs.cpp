@@ -4,11 +4,16 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 using namespace Catch::Matchers;
 
-struct X
+struct X;
+
+using RegisterX = std::map<std::string, std::shared_ptr<X>>;
+
+struct X : std::enable_shared_from_this<X>
 {
     int value;
 
@@ -34,6 +39,11 @@ struct X
     ~X()
     {
         cout << "~X(" << value << ")\n";
+    }
+
+    void register_me_as(std::string key, RegisterX& reg)
+    {
+        reg.emplace(std::move(key), shared_from_this());
     }
 };
 
@@ -79,9 +89,9 @@ TEST_CASE("legacy hell")
     } // mem-leak
 
     {
-        X x {1, "evil"};
-        X* ptr = &x;
-        use_x(ptr); // seg-fault
+        // X x {1, "evil"};
+        // X* ptr = &x;
+        // use_x(ptr); // seg-fault
     }
 }
 
@@ -152,7 +162,7 @@ TEST_CASE("custom deallocator")
         FILE* f = fopen("data.txt", "w");
 
         vector<int> vec;
-        fprintf(f, "%d", vec.at(5)); // throws exception
+        REQUIRE_THROWS(fprintf(f, "%d", vec.at(5))); // throws exception
 
         fclose(f);
     }
@@ -162,7 +172,7 @@ TEST_CASE("custom deallocator")
         std::unique_ptr<FILE, int (*)(FILE*)> f {fopen("data2.txt", "w"), fclose};
 
         vector<int> vec;
-        fprintf(f.get(), "%d", vec.at(5)); // throws exception
+        REQUIRE_THROWS(fprintf(f.get(), "%d", vec.at(5))); // throws exception
     }
 
     SECTION("safe")
@@ -172,7 +182,7 @@ TEST_CASE("custom deallocator")
         std::unique_ptr<FILE, decltype(file_closer)> f {fopen("data2.txt", "w"), file_closer};
 
         vector<int> vec;
-        fprintf(f.get(), "%d", vec.at(5)); // throws exception
+        REQUIRE_THROWS(fprintf(f.get(), "%d", vec.at(5))); // throws exception
     }
 }
 
@@ -183,4 +193,19 @@ TEST_CASE("std::unique_ptr<T[]>")
     std::unique_ptr<int[]> uptr(tab);
 
     uptr[54] = 43;
+}
+
+TEST_CASE("shared_ptrs")
+{
+    auto u_a = std::make_unique<X>(42, "a");
+
+    std::shared_ptr<X> x_a(std::move(u_a)) ;
+
+    RegisterX objects;
+
+    x_a->register_me_as("a key", objects);
+
+    x_a.reset();
+
+    REQUIRE(objects.at("a key")->value == 42);
 }
