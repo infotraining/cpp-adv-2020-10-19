@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/d/infotraining/code/cpp-11/code/_exercises/shared_ptr_ex/main.cpp
+cassert
+-
+cstdlib
+-
+iostream
+-
+set
+-
+stdexcept
+-
+string
+-
+
