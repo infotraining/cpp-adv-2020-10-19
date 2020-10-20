@@ -244,7 +244,7 @@ template <typename F, typename Arg1> void call(F&& func, Arg1&& arg1)
     func(std::forward<Arg1>(arg1));
 }
 
-TEST_CASE()
+TEST_CASE("call wraper")
 {
     call(&foo, 10);
     call(&bar, 42);

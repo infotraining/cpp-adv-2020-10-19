@@ -5,14 +5,14 @@
 #include <cstring>
 #include <iostream>
 
-namespace LegacyCode
+namespace Modernized
 {
     class Paragraph
     {
         char* buffer_;
 
     protected:
-        void swap(Paragraph& p)
+        void swap(Paragraph& p) noexcept
         {
             std::swap(buffer_, p.buffer_);
         }
@@ -44,16 +44,18 @@ namespace LegacyCode
             return *this;
         }
         
-        Paragraph(Paragraph&& source) : buffer_{source.buffer_}
+        Paragraph(Paragraph&& source) noexcept : buffer_{source.buffer_}
         {
             source.buffer_ = nullptr;
             std::cout << "Paragraph(mv: " << buffer_ << ")\n";
         }
         
-        Paragraph& operator=(Paragraph&& source)
+        Paragraph& operator=(Paragraph&& source) noexcept
         {
             if (this != &source)
             {
+                delete[] buffer_;
+
                 this->buffer_ = source.buffer_;
                 source.buffer_ = nullptr;
             }
@@ -66,7 +68,7 @@ namespace LegacyCode
             std::strcpy(buffer_, txt);
         }
 
-        const char* get_paragraph() const
+        const char* get_paragraph() const noexcept
         {
             return buffer_;
         }
@@ -76,7 +78,7 @@ namespace LegacyCode
             std::cout << "Rendering text '" << buffer_ << "' at: [" << posx << ", " << posy << "]" << std::endl;
         }
 
-        ~Paragraph()
+        ~Paragraph() noexcept
         {
             std::cout << "~Paragraph(" << (buffer_ ? buffer_ : "after move") << ")\n";
             delete[] buffer_;
@@ -94,7 +96,7 @@ public:
 class Text : public Shape
 {
     int x_, y_;
-    LegacyCode::Paragraph p_;
+    Modernized::Paragraph p_;
 public:
     Text(int x, int y, const std::string& text) : x_{x}, y_{y}, p_{text.c_str()}
     {}

@@ -8,11 +8,11 @@ using namespace std::literals;
 
 // TEST_CASE("Moving paragraph")
 // {
-//     LegacyCode::Paragraph p{"***"};
+//     Modernized::Paragraph p{"***"};
 
 //     SECTION("move constructor")
 //     {
-//         LegacyCode::Paragraph mp = std::move(p);
+//         Modernized::Paragraph mp = std::move(p);
 
 //         REQUIRE(mp.get_paragraph() == "***"s);
 //         REQUIRE(p.get_paragraph() == nullptr);
@@ -20,7 +20,7 @@ using namespace std::literals;
 
 //     SECTION("move assignment")
 //     {
-//         LegacyCode::Paragraph other{"###"};
+//         Modernized::Paragraph other{"###"};
 //         other = std::move(p);
 
 //         REQUIRE(other.get_paragraph() == "***"s);
@@ -50,40 +50,40 @@ using namespace std::literals;
 //     }
 // }
 
-LegacyCode::Paragraph create_paragraph()
+Modernized::Paragraph create_paragraph()
 {
-    LegacyCode::Paragraph p {"abc"};
+    Modernized::Paragraph p {"abc"};
     return p;
 }
 
 class Header
 {
-    LegacyCode::Paragraph p_;
+    Modernized::Paragraph p_;
     std::string header_;
 
 public:
-    // Header(LegacyCode::Paragraph&& p, std::string&& h)
+    // Header(Modernized::Paragraph&& p, std::string&& h)
     //     : p_{std::move(p)}, header_{std::move(h)}
     // {
     // }
 
-    // Header(const LegacyCode::Paragraph& p, const std::string& h)
+    // Header(const Modernized::Paragraph& p, const std::string& h)
     //     : p_{p}, header_{h}
     // {
     // }
 
-    // Header(const LegacyCode::Paragraph& p, std::string&& h)
+    // Header(const Modernized::Paragraph& p, std::string&& h)
     //     : p_{p}, header_{std::move(h)}
     // {
     // }
 
-    // Header(LegacyCode::Paragraph&& p, const std::string& h)
+    // Header(Modernized::Paragraph&& p, const std::string& h)
     //     : p_{std::move(p)}, header_{h}
     // {
     // }
 
     // // good compromise
-    // Header(LegacyCode::Paragraph p, std::string h)
+    // Header(Modernized::Paragraph p, std::string h)
     //     : p_ {std::move(p)}
     //     , header_ {std::move(h)}
     // {
@@ -96,21 +96,49 @@ public:
     {}
 };
 
-TEST_CASE("Paragraph")
-{
-    using namespace LegacyCode;
+// TEST_CASE("Paragraph")
+// {
+//     using namespace Modernized;
 
-    Paragraph p = create_paragraph();
-    p.render_at(10, 20);
+//     Paragraph p = create_paragraph();
+//     p.render_at(10, 20);
 
-    std::string header_str = "<h2>";
+//     std::string header_str = "<h2>";
 
-    std::cout << "\n\n";
+//     std::cout << "\n\n";
 
-    Header h1(create_paragraph(), "<h1>"); // init with rvalue
-    Header h2 {p, header_str}; // init with lvalue (copy)
-    REQUIRE(header_str == "<h2>");
-    Header h3 {create_paragraph(), std::move(header_str)};
+//     Header h1(create_paragraph(), "<h1>"); // init with rvalue
+//     Header h2 {p, header_str}; // init with lvalue (copy)
+//     REQUIRE(header_str == "<h2>");
+//     Header h3 {create_paragraph(), std::move(header_str)};
     
-    header_str = "<h4>"; // re-assignment is only valid operation
+//     header_str = "<h4>"; // re-assignment is only valid operation
+// }
+
+TEST_CASE("vector + move semantics")
+{
+    using namespace Modernized;
+    std::vector<Paragraph> vec;
+
+    vec.push_back(Paragraph{"a"});
+    std::cout << "\n";
+
+    vec.push_back(Paragraph{"b"});
+    std::cout << "\n";
+
+    vec.push_back(Paragraph{"c"});
+    std::cout << "\n";
+
+    vec.push_back(Paragraph{"d"});
+    std::cout << "\n";
+}
+
+TEST_CASE("move_if_noexcept")
+{
+    Modernized::Paragraph p{"abc"};
+
+    auto target_p = std::move_if_noexcept(p);
+
+    REQUIRE(target_p.get_paragraph() == "abc"s);
+    REQUIRE(p.get_paragraph() == nullptr);
 }
