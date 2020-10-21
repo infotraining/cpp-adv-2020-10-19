@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 
 namespace TraitsAndPolicies
 {
@@ -29,7 +30,7 @@ namespace TraitsAndPolicies
         template <>
         struct AccumulationTraits<uint8_t>
         {
-            typedef unsigned int AccumulatorType;
+            typedef uint64_t AccumulatorType;
         };
 
         template<>
@@ -39,7 +40,7 @@ namespace TraitsAndPolicies
         };
 
         template <typename T>
-        typename AccumulationTraits<T>::AccumulatorType accumulate(const T* begin, const T* end)
+        auto accumulate(const T* begin, const T* end)
         {
             using AccT = typename AccumulationTraits<T>::AccumulatorType;
 
@@ -117,7 +118,7 @@ namespace TraitsAndPolicies
         {
             using AccT =  typename Traits::AccumulatorType;
 
-            AccT total =Traits::zero;
+            AccT total = Traits::zero;
 
             while (begin != end)
             {
@@ -229,11 +230,18 @@ int main()
 {
     using namespace std;
 
-    uint8_t data[255];
+    uint8_t data[10];
 
     iota(begin(data), end(data), 1);
 
-    auto result = TraitsAndPolicies::accumulate(begin(data), end(data));
+    auto result 
+        = 
+            TraitsAndPolicies::accumulate<uint8_t, MultiplyPolicy, MultiplyAccumulationTraits>(
+                begin(data), end(data));
 
-    cout << "result: " << static_cast<int>(result) << endl;
+    auto std_result = std::accumulate(begin(data), end(data), 1ULL,
+             [](const auto& left, const auto& right) { return left * right; });
+
+    cout << "result: " << result << endl;
+    cout << "result: " << std_result << endl;
 }
