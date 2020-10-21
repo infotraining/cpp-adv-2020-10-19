@@ -9,7 +9,17 @@ using namespace std;
 
 namespace vt
 {
-    // TODO
+    template <typename T>
+    const T& sum(const T& arg)
+    {
+        return arg;
+    }
+
+    template <typename T, typename... Ts>
+    std::common_type_t<std::decay_t<T>, std::decay_t<Ts>...> sum(const T& arg1, const Ts&... args)
+    {
+        return arg1 + sum(args...);
+    }
 }
 
 TEST_CASE("variadic sum")
@@ -32,7 +42,7 @@ TEST_CASE("variadic sum")
 
     SECTION("for strings")
     {
-        auto text = vt::sum("Hello", string("world"), "!");
+        auto text = vt::sum("Hello", "world"s, "!");
 
         REQUIRE(text == "Helloworld!");
         static_assert(is_same<string, decltype(text)>::value, "Error");
