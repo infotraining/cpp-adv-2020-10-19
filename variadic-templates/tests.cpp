@@ -6,7 +6,32 @@
 using namespace std;
 using namespace Catch::Matchers;
 
-TEST_CASE("Test")
+void print()
 {
-    REQUIRE(1 == 1);
+    std::cout << "\n";
+}
+
+template <typename Head, typename... Tail>
+void print(Head head, Tail... tail)
+{
+    std::cout << head << " ";
+    print(tail...);
+}
+
+namespace Cpp17
+{
+    template <typename Head, typename... Tail>
+    void print(Head head, Tail... tail)
+    {
+        std::cout << head << " ";
+
+        if constexpr (sizeof...(tail) > 0)
+            print(tail...);
+    }
+}
+
+TEST_CASE("head-tail")
+{
+    print(1, 3.14, "text"s, "abc");
+    Cpp17::print(1, 3.14);
 }
